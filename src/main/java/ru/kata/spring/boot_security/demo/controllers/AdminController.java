@@ -10,13 +10,13 @@ import ru.kata.spring.boot_security.demo.services.RoleService;
 import ru.kata.spring.boot_security.demo.services.UserService;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
     private UserService userService;
-
     private RoleService roleService;
 
     @Autowired
@@ -26,40 +26,24 @@ public class AdminController {
     }
 
     @GetMapping()
-    public String allUsers(ModelMap modelMap) {
+    public String allUsers(ModelMap modelMap, Principal principal) {
+        modelMap.addAttribute("new_user", new User());
         modelMap.addAttribute("users", userService.getAllUsers());
+        modelMap.addAttribute("user", userService.getByUsername(principal.getName()));
+        modelMap.addAttribute("allRoles", roleService.findAll());
         return "/admin/all_users";
     }
 
-    @GetMapping("/new_user")
-    public String newUser(@ModelAttribute("user") User user, ModelMap modelMap) {
-        modelMap.addAttribute("roles", roleService.findAll());
-        return "admin/create_user";
-    }
-
-    @PostMapping("/new")
+    @PostMapping()
     public String regUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "admin/create_user";
-        }
         userService.save(user);
         return "redirect:/admin";
     }
 
-    @GetMapping("/user/{id}")
-    public String getUpdate(ModelMap modelMap, @PathVariable(name = "id") long id) {
-        modelMap.addAttribute("user", userService.getUserByid(id));
-        modelMap.addAttribute("roles", roleService.findAll());
-        return "/admin/update_user";
-    }
-
-
-    @PatchMapping("/update/{id}")
-    public String updateUser(@ModelAttribute("user") @Valid User user, BindingResult bindingResult,
+    @PutMapping("/{id}")
+    public String updateUser(@ModelAttribute("user") User user,
                              @PathVariable("id") long id) {
-        if (bindingResult.hasErrors()) {
-            return "/admin/update_user";
-        }
+
         userService.update(user, id);
         return "redirect:/admin";
     }
@@ -69,4 +53,5 @@ public class AdminController {
         userService.deleteUserByid(id);
         return "redirect:/admin";
     }
+
 }

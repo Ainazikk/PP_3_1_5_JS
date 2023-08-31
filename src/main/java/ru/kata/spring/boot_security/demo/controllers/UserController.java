@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -12,22 +11,22 @@ import ru.kata.spring.boot_security.demo.services.UserService;
 import java.security.Principal;
 
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/")
 public class UserController {
 
     private UserService userService;
+
 
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @GetMapping()
+    @GetMapping("user")
     public String getUserPage(Principal principal, ModelMap modelMap) {
         User user = userService.getByUsername(principal.getName());
         modelMap.addAttribute("user", user);
         return "/user/my_page";
     }
-
 
 }

@@ -2,15 +2,14 @@ package ru.kata.spring.boot_security.demo.entities;
 
 
 import com.sun.istack.NotNull;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Size;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import javax.validation.constraints.*;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -27,16 +26,17 @@ public class User implements UserDetails {
     @Column
     @NotNull
     @Min(value = 0, message = "Age should be greater than 0")
-    private int age;
+    private Integer age;
 
     @Column
     @Size(min = 2, message = "The password must contain at least 2 characters")
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @Fetch(FetchMode.JOIN)
     @JoinTable(name = "users_roles",
-    joinColumns = @JoinColumn(name = "user_id"),
-    inverseJoinColumns = @JoinColumn(name = "role_id"))
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
 
@@ -49,13 +49,13 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    public User(String username, String password, int age) {
+    public User(String username, String password, Integer age) {
         this.username = username;
         this.age = age;
         this.password = password;
     }
 
-    public User(String username, String password, Set<Role> roles, int age) {
+    public User(String username, String password, Set<Role> roles, Integer age) {
         this.username = username;
         this.age = age;
         this.password = password;
@@ -78,16 +78,22 @@ public class User implements UserDetails {
         this.id = id;
     }
 
-    public int getAge() {
+    public Integer getAge() {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(Integer age) {
         this.age = age;
     }
 
     public Set<Role> getRoles() {
         return roles;
+    }
+
+    public String getRoleToString() {
+        StringBuilder sb = new StringBuilder("");
+        this.roles.forEach(role -> sb.append(role.getName()));
+        return sb.toString();
     }
 
     public void setRoles(Set<Role> roles) {
@@ -97,17 +103,6 @@ public class User implements UserDetails {
     public void addRole(Role role) {
         Set<Role> newRoleset = this.roles;
         newRoleset.add(role);
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", age=" + age +
-                ", password='" + password + '\'' +
-                ", roles=" + roles +
-                '}';
     }
 
     @Override
@@ -144,4 +139,16 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", age=" + age +
+                ", password='" + password + '\'' +
+                ", roles=" + roles +
+                '}';
+    }
 }
+
