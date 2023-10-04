@@ -1,68 +1,74 @@
 package ru.kata.spring.boot_security.demo.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.dao.UserDAO;
 import ru.kata.spring.boot_security.demo.entities.User;
+import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
 
-    private UserDAO userDAO;
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Autowired
-    public UserServiceImpl(UserDAO userDAO) {
-        this.userDAO = userDAO;
+    @Override
+    @Transactional
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
-    @Transactional(readOnly = true)
-    public User getByUsername(String username) {
-
-        return userDAO.getByUsername(username);
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userDAO.getAllUsers();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public User getUserByid(long id) {
-        Optional<User> user = userDAO.getUserByid(id);
-        return user.orElse(null);
+    public List<User> getUsersList() {
+        return userRepository.findAll();
     }
 
     @Override
     @Transactional
+    public User getById(Integer id) {
+
+        return userRepository.findById(Long.valueOf(id)).get();
+    }
+
+    @Override
+    @Transactional
+    public void addUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Integer id) {
+        userRepository.deleteById(Long.valueOf(id));
+    }
+
+    @Override
+    @Transactional
+    public void editUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
     public void save(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userDAO.save(user);
+        userRepository.save(user);
     }
-
-    @Override
-    @Transactional
-    public void update(User user, long id) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userDAO.update(user, id);
-    }
-
-    @Override
-    @Transactional
-    public void deleteUserByid(long id) {
-        userDAO.deleteUserByid(id);
-    }
-
 }
