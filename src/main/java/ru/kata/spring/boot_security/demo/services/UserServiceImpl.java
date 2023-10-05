@@ -23,7 +23,6 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    @Transactional
     public User findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
@@ -34,13 +33,11 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<User> getUsersList() {
         return userRepository.findAll();
     }
 
     @Override
-    @Transactional
     public User getById(Integer id) {
 
         return userRepository.findById(Long.valueOf(id)).get();

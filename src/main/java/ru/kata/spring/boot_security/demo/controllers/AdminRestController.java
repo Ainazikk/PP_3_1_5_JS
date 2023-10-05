@@ -22,7 +22,6 @@ public class AdminRestController {
     private UserService userService;
     private RoleService roleService;
 
-    @Autowired
     public AdminRestController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
